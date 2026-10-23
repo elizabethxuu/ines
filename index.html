@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Elizabeth Xu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=La+Belle+Aurore&family=Pinyon+Script&family=Inter:wght@300;400;500&family=Courier+Prime:wght@400&family=Special+Elite&display=swap" rel="stylesheet"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper: #fafaf6;
+      --pink: #f4a0b8;
+      --pink-dark: #dac9c8;
+      --sage: #d0d4c6;
+      --lavender: #d8d4e0;
+      --ink: #403e3e;
+      --ink-light: #6a5a52;
+      --ink-muted: #9a8a7a;
+      --red: #c03558;
+      --border: #ddd0c0;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; font-weight: 300; }
+
+    /* ===================== BOOK COVER ===================== */
+    #book-cover {
+      position: fixed; inset: 0; z-index: 200;
+      background: #2c1a2e;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; perspective: 2500px;
+    }
+    #book-cover.gone { display: none; }
+
+    .book-scene {
+      position: relative;
+      width: min(400px, 85vw);
+      height: min(560px, 85vh);
+      transform-style: preserve-3d;
+    }
+
+    .page {
+      position: absolute; inset: 0;
+      background: var(--pink);
+      border-radius: 2px 8px 8px 2px;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.3);
+    }
+    .page-1 { background: #f4a0b8; z-index: 10; transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1) 0s; }
+    .page-2 { background: #f8b8c8; z-index: 9;  transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1) 0.1s; }
+    .page-3 { background: #fac4d0; z-index: 8;  transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1) 0.18s; }
+    .page-4 { background: #fdd0d8; z-index: 7;  transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1) 0.24s; }
+    .page-5 { background: #fee0e8; z-index: 6;  transition: transform 0.5s cubic-bezier(0.645,0.045,0.355,1) 0.28s; }
+    #book-cover.open .page-1 { transform: rotateY(-185deg); }
+    #book-cover.open .page-2 { transform: rotateY(-175deg); }
+    #book-cover.open .page-3 { transform: rotateY(-165deg); }
+    #book-cover.open .page-4 { transform: rotateY(-155deg); }
+    #book-cover.open .page-5 { transform: rotateY(-145deg); }
+
+    .book-spine { position: absolute; left: -8px; top: 0; bottom: 0; width: 8px; background: linear-gradient(to right, #1a0e18, #3a2030); border-radius: 2px 0 0 2px; z-index: 20; box-shadow: -2px 0 8px rgba(0,0,0,0.4); }
+
+    .cover-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; z-index: 11; pointer-events: none; padding: 36px 32px 28px; }
+    .book-photo { width: 170px; height: 150px; object-fit: cover; object-position: center top; filter: grayscale(1) contrast(1.1); transform: rotate(1.5deg); box-shadow: 2px 2px 10px rgba(0,0,0,0.2); align-self: flex-start; margin-left: 16px; margin-bottom: 28px; margin-top: 12px; }
+    .book-name-svg { width: 100%; height: 100px; flex: 1; }
+    .book-bottom { width: 100%; margin-top: auto; }
+    .book-dividers { display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px; }
+    .book-dividers span { display: block; height: 1px; background: #2c1a2e; opacity: 0.4; }
+    .book-footer { display: flex; justify-content: space-between; font-family: 'Special Elite', cursive; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #2c1a2e; opacity: 0.72; }
+    .book-enter { position: absolute; bottom: -36px; left: 50%; transform: translateX(-50%); font-family: 'Inter', sans-serif; font-weight: 300; font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(255,220,228,0.55); white-space: nowrap; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
+
+    /* ===================== NAV ===================== */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 22px 56px; background: transparent; transition: background 0.4s, border-color 0.4s; border-bottom: 0.5px solid transparent; }
+    nav.scrolled { background: var(--paper); border-bottom-color: var(--border); }
+    .nav-logo { font-family: 'La Belle Aurore', cursive; font-size: 17px; color: var(--red); text-decoration: none; }
+    .nav-links { display: flex; gap: 36px; }
+    .nav-links a { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--ink); }
+
+    /* ===================== HERO ===================== */
+    #hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 100px 56px 80px; gap: 80px; }
+    .hero-photo-wrap { animation: fadeUp 1.2s ease 0.2s both; }
+    .hero-photo-wrap img { width: 100%; max-width: 460px; height: 620px; object-fit: cover; object-position: center top; filter: contrast(1.06) brightness(0.97); display: block; }
+    .hero-text { animation: fadeUp 1.2s ease 0.4s both; }
+    .hero-not-resume { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 28px; }
+    .hero-name { font-family: 'La Belle Aurore', cursive; font-size: clamp(60px, 8vw, 108px); font-weight: 300; font-style: italic; color: var(--ink); line-height: 0.95; margin-bottom: 8px; }
+    .hero-surname { font-family: 'La Belle Aurore', cursive; font-size: clamp(60px, 8vw, 108px); font-weight: 300; color: var(--red); line-height: 0.95; display: block; margin-bottom: 36px; }
+    .hero-role-row { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+    .hero-role { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-muted); }
+    .hero-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+    .hero-divider { width: 40px; height: 0.5px; background: var(--border); margin-bottom: 24px; }
+    .hero-bio { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 19px; font-weight: 300; font-style: italic; color: var(--ink-light); line-height: 1.8; max-width: 400px; margin-bottom: 36px; }
+    .hero-cta { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--ink); padding-bottom: 4px; transition: color 0.2s, border-color 0.2s; }
+    .hero-cta:hover { color: var(--red); border-color: var(--red); }
+
+
+        @media (max-width: 768px) {
+      .crossword-game { grid-template-columns: 1fr; }
+      .crossword-photo { height: 300px; }
+    }
+
+    /* ===================== TICKER ===================== */
+    .ticker-wrap { overflow: hidden; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); padding: 14px 0; background: var(--sage); }
+    .ticker { display: flex; animation: ticker 22s linear infinite; width: max-content; }
+    .ticker-item { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 15px; color: var(--ink-light); padding: 0 32px; white-space: nowrap; }
+    .ticker-item::after { content: '·'; padding-left: 32px; }
+    @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* ===================== CROSSWORD ===================== */
+    #crossword {
+      padding: 100px 56px;
+      border-top: 0.5px solid var(--border);
+      background: var(--pink);
+      position: relative; overflow: hidden;
+    }
+    .crossword-header { margin-bottom: 48px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .crossword-title { font-family: 'La Belle Aurore', cursive; font-size: clamp(36px,5vw,60px); font-weight: 300; font-style: italic; color: var(--ink); }
+    .crossword-byline { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--ink); opacity: 0.5; letter-spacing: 0.08em; }
+
+    .crossword-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+
+    .crossword-photo-wrap { position: relative; }
+    .crossword-photo { width: 100%; height: 480px; object-fit: cover; object-position: center top; filter: grayscale(1) contrast(1.1) brightness(0.9); display: block; }
+    .crossword-grid-overlay { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(12, 1fr); }
+    .grid-cell { border: 0.5px solid rgba(255,255,255,0.15); }
+    .grid-word { position: absolute; display: flex; gap: 2px; }
+    
+    .grid-letter {
+      width: 32px; height: 32px;
+      background: rgba(192,53,88,0.82);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Courier Prime', monospace; font-size: 13px;
+      color: white; letter-spacing: 0;
+      backdrop-filter: blur(1px);
+      opacity: 0; transform: translateY(-12px) scale(0.8);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .grid-letter.tile-visible {
+      opacity: 1; transform: translateY(0) scale(1);
+    }
+    .crossword-photo-wrap { position: relative; overflow: hidden; }
+
+
+    .crossword-clues { display: flex; flex-direction: column; gap: 32px; }
+    .clues-section-title { font-family: 'Courier Prime', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); margin-bottom: 16px; font-weight: 300; }
+    .clue { display: flex; gap: 12px; margin-bottom: 12px; align-items: baseline; }
+    .clue-num { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--red); min-width: 20px; }
+    .clue-text { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-style: italic; color: var(--ink-light); line-height: 1.4; }
+
+    .clue-answer {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px; color: var(--red);
+      margin-left: 6px; letter-spacing: 0.1em;
+      opacity: 0; transition: opacity 0.4s ease;
+      cursor: pointer;
+    }
+    .clue.revealed .clue-answer { opacity: 1; }
+    .clue-text { cursor: pointer; }
+    .clue:hover .clue-text { color: var(--ink); }
+
+
+    /* ===================== BENTO WORK ===================== */
+    #work {
+      padding: 100px 56px;
+      border-top: 0.5px solid var(--border);
+      background: var(--paper);
+    }
+    .work-header { margin-bottom: 48px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .work-title-small { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 10px; }
+    .work-title-big { font-family: 'La Belle Aurore', cursive; font-size: clamp(36px,5vw,60px); font-weight: 300; font-style: italic; color: var(--ink); }
+    .work-title-big em { color: var(--red); font-style: italic; }
+
+    .bento-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: auto; gap: 2px; }
+
+    .bento-card { background: #f5eeee; padding: 36px 28px; text-decoration: none; display: flex; flex-direction: column; transition: background 0.3s; position: relative; }
+    .bento-card:hover { background: var(--pink-dark); }
+    .bento-card.span-2 { grid-column: span 2; }
+    .bento-card.span-3 { grid-column: span 3; }
+    .bento-card.span-4 { grid-column: span 4; }
+    .bento-card.span-6 { grid-column: span 6; }
+    .bento-card.tall { min-height: 280px; }
+
+    .bento-num { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--red); margin-bottom: 16px; letter-spacing: 0.1em; }
+    .folder-wrap { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 16px; }
+    .folder-icon { width: 48px; height: 40px; position: relative; margin-bottom: 6px; }
+    .folder-back { width: 48px; height: 34px; background: var(--pink); border-radius: 0 4px 4px 4px; position: absolute; bottom: 0; }
+    .folder-tab { width: 20px; height: 8px; background: var(--pink); border-radius: 3px 3px 0 0; position: absolute; top: 0; left: 0; }
+    .folder-front { width: 48px; height: 28px; background: #f8d0d8; border-radius: 0 3px 3px 3px; position: absolute; bottom: 0; opacity: 0.85; }
+    .folder-name { font-family: 'Courier Prime', monospace; font-size: 10px; color: var(--red); letter-spacing: 0.06em; }
+
+    .bento-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; font-style: italic; color: var(--ink); margin-bottom: 10px; line-height: 1.2; }
+    .bento-desc { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: var(--ink-muted); line-height: 1.7; margin-bottom: 20px; flex: 1; }
+    .bento-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+    .bento-tag { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border: 0.5px solid var(--border); color: var(--ink-muted); }
+
+    .bento-stat-card { background: var(--lavender); padding: 32px 24px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .bento-stat-card.span-2 { grid-column: span 2; }
+    .stat-big { font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 300; font-style: italic; color: var(--red); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-muted); }
+
+    /* ===================== SKETCH PAGE ===================== */
+    #sketch {
+      border-top: 0.5px solid var(--border);
+      display: grid; grid-template-columns: 1fr 1fr;
+      min-height: 80vh;
+    }
+    .sketch-photo-side { position: relative; overflow: hidden; background: #e8e0d8; }
+    .sketch-photo-side img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.3) contrast(1.05); display: block; }
+    .sketch-draw-side { padding: 72px 64px; display: flex; flex-direction: column; justify-content: center; background: var(--paper); position: relative; }
+    .sketch-eyebrow { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 24px; }
+    .sketch-title { font-family: 'La Belle Aurore', cursive; font-size: clamp(32px,4vw,52px); font-weight: 300; font-style: italic; color: var(--ink); line-height: 1.15; margin-bottom: 32px; }
+    .sketch-title em { color: var(--red); }
+    .sketch-lines { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
+    .sketch-line { display: flex; align-items: baseline; gap: 16px; }
+    .sketch-dash { width: 24px; height: 0.5px; background: var(--red); flex-shrink: 0; margin-top: 10px; }
+    .sketch-line-text { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-style: italic; color: var(--ink-light); line-height: 1.7; }
+    .sketch-quote { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; font-weight: 300; color: var(--ink); border-left: 1px solid var(--red); padding-left: 20px; line-height: 1.6; }
+
+    /* SVG sketch lines */
+    .sketch-svg { position: absolute; top: 0; right: -60px; width: 120px; height: 100%; opacity: 0.12; pointer-events: none; }
+
+    /* ===================== ABOUT ===================== */
+    #about { padding: 100px 56px; border-top: 0.5px solid var(--border); background: var(--lavender); display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .about-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 16px; }
+    .about-title { font-family: 'La Belle Aurore', cursive; font-size: clamp(36px,4vw,52px); font-weight: 300; font-style: italic; color: var(--ink); margin-bottom: 28px; }
+    .about-title em { color: var(--red); font-style: italic; }
+    .about-body p { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 18px; font-weight: 300; font-style: italic; color: var(--ink-light); line-height: 1.9; margin-bottom: 20px; }
+    .about-skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .skill-tag { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 14px; border: 0.5px solid var(--border); color: var(--ink-muted); background: rgba(255,255,255,0.6); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 300; font-style: italic; color: var(--red); line-height: 1; margin-bottom: 4px; }
+    .stat-lbl { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-muted); }
+
+    /* ===================== CONTACT ===================== */
+    #contact { padding: 100px 56px 120px; border-top: 0.5px solid var(--border); text-align: center; }
+    .contact-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 16px; }
+    .contact-headline { font-family: 'La Belle Aurore', cursive; font-size: clamp(52px,7vw,96px); font-weight: 300; font-style: italic; color: var(--ink); margin-bottom: 20px; line-height: 1; }
+    .contact-sub { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 18px; font-style: italic; font-weight: 300; color: var(--ink-light); max-width: 440px; margin: 0 auto 48px; line-height: 1.8; }
+    .contact-links { display: flex; gap: 44px; justify-content: center; flex-wrap: wrap; margin-bottom: 56px; }
+    .contact-link { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--ink); padding-bottom: 3px; transition: color 0.2s, border-color 0.2s; }
+    .contact-link:hover { color: var(--red); border-color: var(--red); }
+    .contact-closing { font-family: 'La Belle Aurore', cursive; font-size: 22px; font-style: italic; font-weight: 300; color: var(--red); }
+
+    /* ===================== FOOTER ===================== */
+    footer { border-top: 0.5px solid var(--border); padding: 24px 56px; display: flex; justify-content: space-between; align-items: center; background: var(--sage); }
+    .footer-name { font-family: 'La Belle Aurore', cursive; font-style: italic; font-size: 15px; color: var(--ink-muted); }
+    .footer-right { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-muted); }
+
+
+    
+    .art-overlay { position:absolute; inset:0; background:linear-gradient(transparent 45%, rgba(44,40,40,0.88)); display:flex; flex-direction:column; justify-content:flex-end; padding:16px; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.9s ease, transform 0.9s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+
+    
+
+    @media (max-width: 768px) {
+      nav { padding: 14px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+      .nav-links { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links a { font-size: 9px; letter-spacing: 0.1em; padding: 6px 12px; white-space: nowrap; border-bottom: 1.5px solid transparent; }
+      .nav-links a:hover { border-bottom-color: var(--red); color: var(--ink); }
+      #hero { grid-template-columns: 1fr; padding: 90px 24px 60px; gap: 40px; }
+      .hero-photo-wrap img { height: 440px; max-width: 100%; }
+      #crossword { padding: 60px 24px; }
+      .crossword-layout { grid-template-columns: 1fr; }
+      .crossword-photo { height: 340px; }
+      #work { padding: 60px 24px; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .bento-card.span-2, .bento-card.span-3, .bento-card.span-4, .bento-card.span-6 { grid-column: span 1; }
+      .bento-stat-card.span-2 { grid-column: span 1; }
+      #sketch { grid-template-columns: 1fr; }
+      .sketch-photo-side { height: 380px; }
+      .sketch-draw-side { padding: 48px 24px; }
+      #about { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
+      #contact { padding: 60px 24px 80px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== BOOK COVER ===================== -->
+<div id="book-cover" onclick="openBook()">
+  <div class="book-scene">
+    <div class="book-spine"></div>
+    <div class="page page-5"></div>
+    <div class="page page-4"></div>
+    <div class="page page-3"></div>
+    <div class="page page-2"></div>
+    <div class="page page-1"></div>
+    <div class="cover-content">
+      <img src="photo-book.jpg" class="book-photo" alt="Elizabeth Xu"/>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:0 8px">
+        <div style="font-family:'Pinyon Script',cursive;font-size:58px;color:#2c1a2e;opacity:0.82;line-height:1;text-align:center;letter-spacing:0.02em">Elizabeth</div>
+      </div>
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:36px;letter-spacing:0.12em;text-transform:uppercase;color:#2c1a2e;opacity:0.9;line-height:1.1">Xu</div>
+      </div>
+      <div class="book-bottom">
+        <div class="book-dividers"><span></span><span></span></div>
+        <div class="book-footer"><span>NEW YORK</span><span>2026</span></div>
+      </div>
+    </div>
+    <p class="book-enter">open the book</p>
+  </div>
+</div>
+
+<!-- ===================== NAV ===================== -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">Elizabeth Xu</a>
+  <div class="nav-links">
+    <a href="#crossword">Identity</a>
+    <a href="#work">Work</a>
+    <a href="#art">Art</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+  <div class="hero-photo-wrap">
+    <img src="photo.jpg" alt="Elizabeth Xu"/>
+  </div>
+  <div class="hero-text">
+    <p class="hero-not-resume">This is not a resume.</p>
+    <h1 class="hero-name">Elizabeth</h1>
+    <span class="hero-surname">Xu.</span>
+    <div class="hero-role-row">
+      <span class="hero-role">Product & GTM</span>
+      <span class="hero-dot"></span>
+      <span class="hero-role">wornwith.care</span>
+      <span class="hero-dot"></span>
+      <span class="hero-role">New York</span>
+    </div>
+    <div class="hero-divider"></div>
+    <p class="hero-bio">Senior Analyst at Accenture's Salesforce Business Group. Builder of products, experiences, and things that didn't exist before.</p>
+    <a href="#crossword" class="hero-cta">Read on</a>
+  </div>
+
+  </section>
+
+<!-- ===================== TICKER ===================== -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">Product & GTM</span><span class="ticker-item">Salesforce BA</span><span class="ticker-item">Demo Queen</span><span class="ticker-item">wornwith.care</span><span class="ticker-item">Figma</span><span class="ticker-item">React</span><span class="ticker-item">Cursor</span><span class="ticker-item">UX</span><span class="ticker-item">Builder</span><span class="ticker-item">Fortune 500</span><span class="ticker-item">Multi-hyphenate</span><span class="ticker-item">Product & GTM</span><span class="ticker-item">Salesforce BA</span><span class="ticker-item">Demo Queen</span><span class="ticker-item">wornwith.care</span><span class="ticker-item">Figma</span><span class="ticker-item">React</span><span class="ticker-item">Cursor</span><span class="ticker-item">UX</span><span class="ticker-item">Builder</span><span class="ticker-item">Fortune 500</span><span class="ticker-item">Multi-hyphenate</span>
+  </div>
+</div>
+
+<!-- ===================== CROSSWORD ===================== -->
+<section id="crossword">
+  <div class="crossword-header reveal">
+    <h2 class="crossword-title">who is<br/><em style="color:var(--red)">Elizabeth Xu?</em></h2>
+    <span class="crossword-byline">elizabeth xu · new york · 2026</span>
+  </div>
+  <div class="crossword-layout reveal">
+    <div class="crossword-photo-wrap" id="cw-photo-wrap">
+      <img src="photo.jpg" class="crossword-photo" alt=""/>
+    </div>
+    <div class="crossword-clues">
+      <div>
+        <p class="clues-section-title">Across</p>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">1.</span><span class="clue-text">She ships things that didn't exist before <span class="clue-answer">BUILDER</span></span></div>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">2.</span><span class="clue-text">The thing you can't teach and can't fake <span class="clue-answer">TASTE</span></span></div>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">3.</span><span class="clue-text">What Rockaway Beach made her <span class="clue-answer">SURFER</span></span></div>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">4.</span><span class="clue-text">Her knowledge graph, arranged as a flower <span class="clue-answer">LOTUS</span></span></div>
+      </div>
+      <div>
+        <p class="clues-section-title">Down</p>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">5.</span><span class="clue-text">She's never lost a room doing this <span class="clue-answer">DEMO</span></span></div>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">6.</span><span class="clue-text">Her professional identity, deployed as a web app <span class="clue-answer">MAPPED</span></span></div>
+        <div class="clue" onclick="this.classList.toggle('revealed')"><span class="clue-num">7.</span><span class="clue-text">A manager once called her this <span class="clue-answer">MULTI-HYPHENATE</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BENTO WORK ===================== -->
+<section id="work">
+  <div class="work-header reveal">
+    <div>
+      <p class="work-title-small">Selected work</p>
+      <h2 class="work-title-big">What I've <em>built</em></h2>
+    </div>
+  </div>
+  <div class="bento-grid">
+    <a href="https://wornwith.care" target="_blank" class="bento-card span-3 tall reveal">
+      <div class="folder-wrap">
+        <div class="folder-icon"><div class="folder-tab"></div><div class="folder-back"></div><div class="folder-front"></div></div>
+        <span class="folder-name">wornwith.care</span>
+      </div>
+      <h3 class="bento-title">wornwith.care</h3>
+      <p class="bento-desc">What happens when fashion meets regulation — and someone actually builds the thing. A Digital Product Passport prototype for EU ESPR compliance. 16 screens, deployed on Vercel.</p>
+      <div class="bento-tags"><span class="bento-tag">Product</span><span class="bento-tag">Figma</span><span class="bento-tag">Vercel</span><span class="bento-tag">Sustainability</span></div>
+    </a>
+    <a href="https://liz-mapped.vercel.app" target="_blank" class="bento-card span-3 tall reveal">
+      <div class="folder-wrap">
+        <div class="folder-icon"><div class="folder-tab"></div><div class="folder-back"></div><div class="folder-front"></div></div>
+        <span class="folder-name">liz-mapped</span>
+      </div>
+      <h3 class="bento-title">liz-mapped</h3>
+      <p class="bento-desc">Interactive knowledge graph of professional identity mapped as a lotus flower. React, Canvas API, Cursor, Vercel. Built in a day.</p>
+      <div class="bento-tags"><span class="bento-tag">React</span><span class="bento-tag">Canvas API</span><span class="bento-tag">Cursor</span><span class="bento-tag">Vercel</span></div>
+    </a>
+    <a href="https://www.linkedin.com/in/elizabethxu1" target="_blank" class="bento-card span-4 reveal">
+      <div class="folder-wrap">
+        <div class="folder-icon"><div class="folder-tab"></div><div class="folder-back"></div><div class="folder-front"></div></div>
+        <span class="folder-name">accenture.sfbg</span>
+      </div>
+      <h3 class="bento-title">Accenture SFBG</h3>
+      <p class="bento-desc">Three years. 50+ Fortune 500 clients across utilities, health, and public sector. Drove demo-to-close on Salesforce implementations across 3 industries. Known internally as the Demo Queen.</p>
+      <div class="bento-tags"><span class="bento-tag">Salesforce</span><span class="bento-tag">Product</span><span class="bento-tag">GTM</span><span class="bento-tag">Fortune 500</span></div>
+    </a>
+    <div class="bento-stat-card span-2 reveal"><p class="stat-big">50+</p><p class="stat-label">Fortune 500 clients</p></div>
+    <div class="bento-stat-card span-2 reveal" style="background:var(--pink)"><p class="stat-big">3+</p><p class="stat-label">Years at Accenture</p></div>
+    <div class="bento-stat-card span-2 reveal" style="background:var(--sage)"><p class="stat-big">16</p><p class="stat-label">Countries traveled</p></div>
+  </div>
+</section>
+
+<!-- ===================== ART GALLERY ===================== -->
+<section id="art" style="display:contents"></section>
+<!-- ===================== SKETCH PAGE ===================== -->
+<section id="sketch">
+  <div class="sketch-photo-side reveal">
+    <img src="photo.jpg" alt="Elizabeth Xu"/>
+  </div>
+  <div class="sketch-draw-side reveal">
+    <p class="sketch-eyebrow">The person behind the work</p>
+    <h2 class="sketch-title">More than<br/>a <em>job title</em></h2>
+    <div class="sketch-lines">
+      <div class="sketch-line"><div class="sketch-dash"></div><span class="sketch-line-text">Painter. The canvas is where I remember who I am.</span></div>
+      <div class="sketch-line"><div class="sketch-dash"></div><span class="sketch-line-text">Poet. Not often. But when I do, it's the truest thing I make.</span></div>
+      <div class="sketch-line"><div class="sketch-dash"></div><span class="sketch-line-text">Surfer. I claimed the ocean at Rockaway Beach. I surf now.</span></div>
+      <div class="sketch-line"><div class="sketch-dash"></div><span class="sketch-line-text">Traveler. 16 countries. Always solo. Always changed.</span></div>
+      <div class="sketch-line"><div class="sketch-dash"></div><span class="sketch-line-text">Gourmand. 176 restaurants on Beli and counting.</span></div>
+    </div>
+    <blockquote class="sketch-quote">I think in systems<br/>and feel in color.</blockquote>
+    <div style="margin-top:36px;padding-top:28px;border-top:0.5px solid var(--border)">
+      <a href="mailto:elizabethxu2@gmail.com" style="font-family:'La Belle Aurore',cursive;font-size:22px;color:var(--red);text-decoration:none;border-bottom:1px solid var(--red);padding-bottom:2px">elizabethxu2@gmail.com</a>
+    </div>
+
+    </div>
+  <div class="stats-grid reveal">
+    <div><p class="stat-num">3+</p><p class="stat-lbl">Years at Accenture</p></div>
+    <div><p class="stat-num">50+</p><p class="stat-lbl">Fortune 500 clients</p></div>
+    <div><p class="stat-num">16</p><p class="stat-lbl">Countries traveled</p></div>
+    <div><p class="stat-num">176</p><p class="stat-lbl">Restaurants on Beli</p></div>
+  </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section id="contact">
+  <p class="contact-eyebrow reveal">Contact</p>
+  <h2 class="contact-headline reveal">Let's talk.</h2>
+  <p class="contact-sub reveal">Open to product roles, creative collaborations, and interesting conversations. I read every email.</p>
+  <div class="reveal" style="margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto">
+    <p style="font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:16px">Recent writing</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="https://www.linkedin.com/in/elizabethxu1" target="_blank" style="font-family:'La Belle Aurore',cursive;font-size:17px;color:var(--ink);text-decoration:none;border-bottom:0.5px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink)'">
+        <span>A manager once called me a multi-hyphenate</span>
+        <span style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted)">LinkedIn →</span>
+      </a>
+      <a href="https://www.linkedin.com/in/elizabethxu1" target="_blank" style="font-family:'La Belle Aurore',cursive;font-size:17px;color:var(--ink);text-decoration:none;border-bottom:0.5px solid var(--border);padding-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink)'">
+        <span>I built a knowledge graph of myself</span>
+        <span style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted)">LinkedIn →</span>
+      </a>
+      <a href="https://www.linkedin.com/in/elizabethxu1" target="_blank" style="font-family:'La Belle Aurore',cursive;font-size:17px;color:var(--ink);text-decoration:none;padding-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--ink)'">
+        <span>The Demo Queen — on building with taste</span>
+        <span style="font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-muted)">LinkedIn →</span>
+      </a>
+    </div>
+  </div>
+  <div class="contact-links reveal">
+    <a href="mailto:elizabethxu2@gmail.com" class="contact-link">Email</a>
+    <a href="https://www.linkedin.com/in/elizabethxu1" target="_blank" class="contact-link">LinkedIn</a>
+    <a href="https://liz-mapped.vercel.app" target="_blank" class="contact-link">Knowledge Graph</a>
+    <a href="https://wornwith.care" target="_blank" class="contact-link">wornwith.care</a>
+  </div>
+  <p class="contact-closing reveal">until then, Elizabeth</p>
+</section>
+
+<footer>
+  <p class="footer-name">Elizabeth Xu</p>
+  <p class="footer-right">New York City · 2026</p>
+</footer>
+
+<script>
+  function openBook() {
+    const cover = document.getElementById('book-cover');
+    cover.classList.add('open');
+    document.body.style.opacity = '0.3';
+    setTimeout(() => {
+      cover.classList.add('gone');
+      document.body.style.transition = 'opacity 0.8s ease';
+      document.body.style.opacity = '1';
+    }, 1400);
+  }
+
+  function toggleMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.getElementById('hamburger');
+    if (menu) { menu.classList.toggle('open'); }
+    if (burger) { burger.classList.toggle('open'); }
+    document.body.style.overflow = (menu && menu.classList.contains('open')) ? 'hidden' : '';
+  }
+
+  function closeMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.getElementById('hamburger');
+    if (menu) menu.classList.remove('open');
+    if (burger) burger.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  const nav = document.getElementById('nav');
+  if (nav) window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 40); });
+
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Build crossword word tiles with staggered letter animation
+  function buildCrosswordWords() {
+    const wrap = document.getElementById('cw-photo-wrap');
+    if (!wrap) return;
+
+    const words = [
+      { word: 'BUILDER', style: 'top:8%;left:6%',    delay: 0 },
+      { word: 'DEMO',    style: 'top:28%;left:18%',   delay: 0.8 },
+      { word: 'TASTE',   style: 'top:46%;right:8%',   delay: 1.6 },
+      { word: 'SURFER',  style: 'top:62%;left:6%',    delay: 2.4 },
+      { word: 'LOTUS',   style: 'bottom:16%;right:6%', delay: 3.2 },
+      { word: 'MAPPED',  style: 'bottom:6%;left:18%', delay: 4.0 },
+    ];
+
+    words.forEach(({ word, style, delay }) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'position:absolute;display:flex;gap:2px;' + style;
+      word.split('').forEach((letter, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'grid-letter';
+        cell.textContent = letter;
+        cell.style.animationDelay = (delay + i * 0.12) + 's';
+        row.appendChild(cell);
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  // Trigger when crossword section is visible
+  const cwObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        buildCrosswordWords();
+        cwObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const cwSection = document.getElementById('crossword');
+  if (cwSection) cwObserver.observe(cwSection);
+
+
+  // Animate crossword tiles on scroll
+  const tileObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const tiles = entry.target.querySelectorAll('.grid-letter');
+        tiles.forEach((tile, i) => {
+          setTimeout(() => tile.classList.add('tile-visible'), i * 80);
+        });
+        tileObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const photoWrap = document.querySelector('.crossword-photo-wrap');
+  if (photoWrap) tileObserver.observe(photoWrap);
+
+
+  // Crossword reveal hint
+  document.querySelectorAll('.clue').forEach(clue => {
+    const hint = document.createElement('span');
+    hint.style.cssText = 'font-family:Inter,sans-serif;font-size:8px;letter-spacing:0.1em;color:var(--ink-muted);margin-left:8px;opacity:0.5;';
+    hint.textContent = 'click to reveal';
+    clue.querySelector('.clue-text').appendChild(hint);
+    clue.addEventListener('click', () => {
+      hint.style.display = 'none';
+    });
+  });
+
+
+</script>
+</body>
+</html>
